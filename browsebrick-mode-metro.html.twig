@@ -1,0 +1,29 @@
+{# itop-portal-base/portal/src/views/bricks/browse/mode_tree.html.twig #}
+{# Browse brick tree mode layout #}
+{% extends 'itop-portal-base/portal/src/views/bricks/browse/layout.html.twig' %}
+
+{% block bBrowseMainContent %}
+    <div id="brick-content-metro">
+    </div>
+{% endblock %}
+
+{% block pPageLiveScripts %}
+    {{ parent() }}
+    
+    <script type="text/javascript">
+        var browseMode = '{{ sBrowseMode }}';
+        var levelsProperties = {{ aLevelsProperties|raw }};
+        var rawDatas = {{ aItems|raw }};
+            
+        $(document).ready(function(){
+            for(var i in rawDatas)
+            {
+                var itemKeys = Object.keys(rawDatas[i]);
+                var itemLastLevelAlias = itemKeys[itemKeys.length - 1];
+                
+                $('<div class="browse-element vertical-center">'+rawDatas[i][itemLastLevelAlias].name+'</div>').appendTo('#brick-content-metro');
+            }
+            $('<div style="clear: both"></div>').appendTo("#brick-content-metro");
+        });
+    </script>
+{% endblock %}
