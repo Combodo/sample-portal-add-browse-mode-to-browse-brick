@@ -3,27 +3,62 @@
 {% extends 'itop-portal-base/portal/src/views/bricks/browse/layout.html.twig' %}
 
 {% block bBrowseMainContent %}
-    <div id="brick-content-metro">
-    </div>
+	<div id="brick-content-metro">
+	</div>
 {% endblock %}
 
 {% block pPageLiveScripts %}
-    {{ parent() }}
-    
-    <script type="text/javascript">
-        var browseMode = '{{ sBrowseMode }}';
-        var levelsProperties = {{ aLevelsProperties|raw }};
-        var rawDatas = {{ aItems|raw }};
-            
-        $(document).ready(function(){
-            for(var i in rawDatas)
-            {
-                var itemKeys = Object.keys(rawDatas[i]);
-                var itemLastLevelAlias = itemKeys[itemKeys.length - 1];
-                
-                $('<div class="browse-element vertical-center">'+rawDatas[i][itemLastLevelAlias].name+'</div>').appendTo('#brick-content-metro');
-            }
-            $('<div style="clear: both"></div>').appendTo("#brick-content-metro");
-        });
-    </script>
+	{{ parent() }}
+<script type="text/javascript">
+var browseMode 			= '{{ sBrowseMode }}';
+var levelsProperties 	= {{ aLevelsProperties|raw }};
+var rawDatas 			= {{ aItems|raw }};
+
+$(document).ready(function(){
+ for(var i in rawDatas)
+ {
+	var itemKeys 			= Object.keys(rawDatas[i]);
+	var itemLastLevelAlias 	= itemKeys[itemKeys.length - 1];
+	var levelActions 		= levelsProperties[rawDatas[i][itemLastLevelAlias].level_alias].actions;
+	
+	// - Removing explicit (not default) drilldown action since it has no purpose in this particular browse mode
+	delete levelActions['{{ constant('Combodo\\iTop\\Portal\\Brick\\BrowseBrick::ENUM_ACTION_DRILLDOWN') }}'];
+	// - Removing implicit (default) drilldown action
+	if( (levelActions['default'] !== undefined) && (levelActions['default'].type === '{{ constant('Combodo\\iTop\\Portal\\Brick\\BrowseBrick::ENUM_ACTION_DRILLDOWN') }}') ) 
+	{
+			delete levelActions['default'];
+	}
+	levelActionsKeys = Object.keys(levelActions);
+	
+	// - Secondary actions
+	if(levelActionsKeys.length > 1)
+	{
+		// Retrieving secondary action
+		var actionsButtons = {};
+		for(j = 1; j < levelActionsKeys.length; j++)
+		{
+			actionsButtons[levelActionsKeys[j]] = levelActions[levelActionsKeys[j]];
+			console.log(levelActions[levelActionsKeys[j]]);
+		}
+		for(j in actionsButtons)
+			{
+			var action = actionsButtons[j];
+			var url = "{{ app.url_generator.generate('p_browse_brick_mode', {'sBrickId': sBrickId, 'sBrowseMode': constant('Combodo\\iTop\\Portal\\Brick\\BrowseBrick::ENUM_ACTION_CREATE_FROM_THIS')})|raw }}";
+
+			url = action.url.replace(/-objectClass-/, rawDatas[i][itemLastLevelAlias].class).replace(/-objectId-/, rawDatas[i][itemLastLevelAlias].id);
+			url = addParameterToUrl(url, 'ar_token', rawDatas[i][itemLastLevelAlias].action_rules_token['{{ constant('Combodo\\iTop\\Portal\\Brick\\BrowseBrick::ENUM_ACTION_CREATE_FROM_THIS') }}']);
+
+			$('<div class="browse-element vertical-center">'
+				+'<a data-item-id="' + rawDatas[i][itemLastLevelAlias].id + '" data-level-alias="L-1-1-1" data-toggle="modal" data-target="#modal-for-all" href="'
+				+ url + '">'
+				+ rawDatas[i][itemLastLevelAlias].name 
+				+ '</a>'
+				+'</div>').appendTo('#brick-content-metro');
+			}
+		}
+ }
+ $('<div style="clear: both"></div>').appendTo("#brick-content-metro");
+
+});
+</script>
 {% endblock %}
