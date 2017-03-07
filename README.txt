@@ -1,0 +1,1 @@
+Note: This sample is "deprecated" as of iTop 2.4 as the grid mode has been merged into the core. That being said, it still shows how to implement a new browse mode.
